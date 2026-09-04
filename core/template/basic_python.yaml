@@ -1,0 +1,77 @@
+name: python-basic
+description: "python test template for coding"
+
+# ============================
+# الأسئلة اللي بترجع للـ Interface
+# الـ Engine ما بيسأل، بس بيرجع هاي القائمة
+# ============================
+questions:
+  - name_id: project_name
+    type: str
+
+  - name_id: description
+    type: str
+
+  - name_id: language
+    type: list
+    option: ["python", "javascript", "go"]
+
+  - name_id: include_tests
+    type: bool
+    default: true
+
+  - name_id: include_docker
+    type: bool
+    default: false
+
+
+# ============================
+# أوامر تتنفذ بعد ما يخلص التوليد
+# ============================
+tasks:
+  - command: "git init"
+
+  - if: "include_docker == true"
+    command: "docker build -t {{ project_name }} ."
+    else: "echo skipped docker build"
+
+
+# ============================
+# شجرة الملفات - متداخلة (nested)
+# كل عنصر إما type: folder (وله children)
+# أو type: file (وله content)
+# ============================
+file_tree:
+  - type: folder
+    name: src
+    children:
+      - type: file
+        name: main.py
+        content: |
+          print("Hello from {{ project_name }}")
+
+  - type: folder
+    name: tests
+    if: "include_tests == true"
+    children:
+      - type: file
+        name: test_main.py
+        content: |
+          def test_placeholder():
+              assert True
+
+  - type: file
+    name: README.md
+    content: |
+      # {{ project_name }}
+
+      {{ description }}
+
+  - type: file
+    name: Dockerfile
+    if: "include_docker == true"
+    content: |
+      FROM python:3.12-slim
+      WORKDIR /app
+      COPY . .
+      CMD ["python", "src/main.py"]

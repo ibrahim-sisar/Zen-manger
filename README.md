@@ -1,51 +1,90 @@
-# Zen CLI
+# ZEN
 
-**Zen** is a minimalist, opinionated project management tool designed for the terminal. It’s built for developers who believe that project orchestration shouldn't get in the way of the code.
+ZEN is a modular project manager and project generator. It creates, copies,
+moves, and deletes project directories, and generates projects from validated
+YAML templates. ZEN is not a code editor; generated files remain yours to edit
+with your preferred editor.
 
----
+## Features
 
-## The Philosophy
-Zen isn't trying to be a full-blown IDE or a complex project management suite. It exists because managing boilerplate project structures, Git syncs, and workspace switching often breaks the "flow" of development. Zen keeps your workspace organized, automated, and right where it belongs—in your terminal.
+- UI-independent `ZenEngine` for project lifecycle and generation workflows.
+- `ZenKit` filesystem abstraction with consistent errors.
+- Typed template model, YAML loader, Jinja rendering, and safe conditions.
+- Boolean, integer, string, and choice inputs with defaults and validation.
+- Conditional directories/files and argument-list external commands.
+- CLI commands: `create`, `templates`, `list`, `init`, `delete`, `copy`, `move`.
 
-## Why Zen?
-Zen isn't another CLI tool that adds complexity to your workflow. It reduces the cognitive load of managing multiple projects, keeping your environment consistent whether you're working on a Django backend or a simple Python script.
+## Installation and usage
 
-## Key Features
-* **Rapid Boilerplate:** Standardized project creation across different stacks (Django, Python, Frontend, etc.).
-* **Smart Sync:** Keep your local development environments synchronized across multiple machines without the bloat of heavy cloud tools.
-* **Minimalist UI:** Built with `Rich`, Zen provides a clean, distraction-free visual experience.
-* **Performance First:** Built using Python 3.12, designed for sub-second responses.
-* **Human-Centric Stats:** Tracks your coding sessions with a focus on deep work, not just metrics.
+Requires Python 3.10 or newer.
 
-## Technical Stack
-* **Core:** Python 3.12.3
-* **Environment:** Linux (Debian-based recommended)
-* **Dependencies:**
-    * `Rich`: Terminal formatting and UI elements.
-    * `Questionary`: Interactive, intuitive CLI prompts.
-    * `Pyfiglet`: Terminal typography.
-
-## Quick Start
-*Prerequisites: Ensure you have Python 3.12+ installed.*
-
-```bash
-# Clone the repository
-git clone https://github.com/ibrahim-sisar/zen.git
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run Zen
-python3 zen.py
+```powershell
+python -m pip install -e .
+zen templates
+zen create --template python-cli --destination .\workspace
 ```
-## Contributing
-Zen is a tool born from personal necessity, but it is built to grow. If you find yourself constantly battling the same workspace setup issues, your input is more than welcome.
 
-**How to contribute:**
-  - Report Issues: Found a bug? Open an issue.
-  - Feature Requests: Have a "Zen-like" way to improve workflow? Let’s discuss it.
-  - Pull Requests: Check the Todo list in the header. Keep it clean, keep it minimalist.
-Please ensure your code follows the established style and includes tests if you're introducing new logic.
+`zen create` interactively collects inputs. For automation, provide values:
 
-Built by Ibrahim Said Abu Al-Roos
-License: MIT
+```powershell
+zen create -t python-cli -d .\workspace --var project_name=demo `
+  --var description="Example application" --var include_tests=true
+```
+
+The bundled `python-cli` template creates a project directory beneath the
+destination. The destination must be empty unless `--overwrite` is supplied.
+
+## Template format
+
+Each template is a directory containing `template.yaml`. The manifest schema
+currently uses `template_version: 1`:
+
+```yaml
+template_version: 1
+name: my-template
+description: Example
+inputs:
+  - name: project_name
+    type: string
+    required: true
+structure:
+  - type: directory
+    path: "{{ project_name }}/src"
+  - type: file
+    path: "{{ project_name }}/README.md"
+    content: "# {{ project_name }}"
+  - type: file
+    path: "{{ project_name }}/Dockerfile"
+    source: files/Dockerfile
+    if: include_docker
+commands:
+  - command: [python, -m, venv, "{{ project_name }}/.venv"]
+    if: include_venv
+```
+
+Inputs support `string`, `integer`, `boolean`, and `choice`; choices are
+declared with `choices: [one, two]`. Optional `pattern` applies to strings.
+Conditions support `==`, `!=`, boolean values, `and`, `or`, `not`, parentheses,
+and structured `all`, `any`, `not`, `equals`, and `not_equals` mappings. Commands
+are never passed through a shell, which avoids shell interpolation and injection.
+
+For large file contents, use `source` with a path relative to the template
+directory. All paths are required to be relative and cannot escape the
+template or generated project root.
+
+## Architecture
+
+The CLI is an adapter around `ZenEngine`. The engine uses the typed internal
+model from `TemplateLoader`, `TemplateRenderer`, and `ConditionEvaluator`, and
+delegates filesystem work to `ZenKit`. A future GUI can call the same engine
+without changing generation logic.
+
+## Development
+
+```powershell
+python -m pip install -e .
+python -m pytest
+python -m zen --help
+```
+
+Tests use temporary directories and do not modify a user's projects.
