@@ -1,0 +1,12 @@
+[
+    {
+        "template_name": " python-basic",
+        "template_dir": "/home/ibrahim-sisar/Projects/Zen-manger/templates/basic_python.yaml",
+        "template_description": " \"python test template for coding\""
+    },
+    {
+        "template_name": " c++-basic",
+        "template_dir": "/home/ibrahim-sisar/Projects/Zen-manger/templates/basic_c++.yaml",
+        "template_description": " \"c++ test template for coding\""
+    }
+]

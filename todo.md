@@ -1,0 +1,3 @@
+- [ ] conect ui with engine to show data
+- [ ] bulid full templete white data from user 
+- [ ] bulid small cli ui to test project

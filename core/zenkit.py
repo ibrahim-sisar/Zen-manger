@@ -20,7 +20,7 @@ Responsibilities:
 Technical Details:
 ------------------
 * Module: core/zenkit.py
-* Dependencies: Shutil, Pathlib, yaml, jinja2
+* Dependencies: Shutil, Pathlib, yaml, jinja2, json
 
 Author:
 -------
@@ -37,6 +37,7 @@ from pathlib import Path
 from jinja2 import Template
 import shutil
 import yaml
+import json
 # --------------------[ Tools ]---------------------
 
 # ==================== Folder Operations ====================
@@ -87,7 +88,14 @@ def delete_file(path: str) -> bool:
     file.unlink()
     return not is_exists(file)
 
-
+def list_files(path):
+    files = []
+    
+    for file in path.iterdir():
+        if file.is_file():
+            files.append(file)
+    return files
+    
 def is_file(path: str) -> bool:
     return Path(path).is_file()
 
@@ -119,3 +127,25 @@ def load_template(path: str, data: dict) -> dict:
     text = file.read_text(encoding="utf-8")
     rendered_text = render_text(text, data)
     return yaml.safe_load(rendered_text)
+
+# ==================== template Operations ====================
+
+def read_json(file_path):
+    path = Path(file_path)
+
+    if not path.exists():
+        return {}
+
+    return json.loads(path.read_text())
+
+
+def add_json(file_path, key, value):
+    path = Path(file_path)
+
+    data = read_json(path)
+
+    data[key] = value
+
+    path.write_text(
+        json.dumps(data, indent=4)
+    )

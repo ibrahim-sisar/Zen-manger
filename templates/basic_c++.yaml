@@ -1,0 +1,87 @@
+template_name: c++-basic
+template_description: "c++ test template for coding"
+
+# ============================
+# الأسئلة اللي بترجع للـ Interface
+# الـ Engine ما بيسأل، بس بيرجع هاي القائمة
+# ============================
+questions:
+  - name_id: project_name
+    type: str
+
+  - name_id: description
+    type: str
+
+  - name_id: language
+    type: list
+    option: ["c++", "javascript", "go"]
+
+  - name_id: include_tests
+    type: bool
+    default: true
+
+  - name_id: include_docker
+    type: bool
+    default: false
+
+
+# ============================
+# أوامر تتنفذ بعد ما يخلص التوليد
+# ============================
+tasks:
+  - command: "git init"
+
+  - if: "include_docker == true"
+    command: "docker build -t {{ project_name }} ."
+    else: "echo skipped docker build"
+
+
+# ============================
+# شجرة الملفات - متداخلة (nested)
+# كل عنصر إما type: folder (وله children)
+# أو type: file (وله content)
+# ============================
+file_tree:
+  - type: folder
+    name: src
+    children:
+      - type: file
+        name: main.cpp
+        content: |
+          #include <iostream>
+
+          int main() {
+            std::cout << "Hello from {{ project_name }}!" << std::endl;
+            return 0;
+          }
+
+  - type: folder
+    name: tests
+    if: "include_tests == true"
+    children:
+      - type: file
+        name: test_main.cpp
+        content: |
+          #include <cassert>
+
+          int main() {
+            assert(true);
+            return 0;
+          }
+
+  - type: file
+    name: README.md
+    content: |
+      # {{ project_name }}
+
+      {{ description }}
+
+  - type: file
+    name: Dockerfile
+    if: "include_docker == true"
+    content: |
+      FROM gcc:13
+      WORKDIR /app
+      COPY . .
+      RUN g++ -std=c++17 src/main.cpp -o app
+      CMD ["./app"]

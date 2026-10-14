@@ -1,5 +1,5 @@
-name: python-basic
-description: "python test template for coding"
+template_name: python-basic
+template_description: "python test template for coding"
 
 # ============================
 # الأسئلة اللي بترجع للـ Interface

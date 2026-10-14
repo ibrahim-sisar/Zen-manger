@@ -4,3 +4,8 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+.vscode
+s.json
+.gitignore
+todo.md
+.git
